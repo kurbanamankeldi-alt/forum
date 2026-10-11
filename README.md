@@ -1,70 +1,75 @@
-# Literary Lions Forum — Task Split
+# Literary Lions Forum 
  
 A Go web forum for a book club: SQLite-backed, cookie/UUID sessions, categorized
 posts, like/dislike, filtering, and Docker deployment.
- 
-## Before splitting
- 
-Agree together, in one sitting, before writing code:
- 
-- **ERD / DB schema** — tables, columns, foreign keys for `users`, `sessions`,
-  `posts`, `comments`, `categories`, `post_categories`, `likes`.
-- **Route list** — every HTTP endpoint and method, e.g. `POST /register`,
-  `GET /posts?category=`, `POST /posts/{id}/like`.
-- **Migration file naming** — e.g. `001_users.sql`, `002_posts.sql`, so schema
-  changes from different people don't collide.
-- **Auth middleware contract** — function signature Person A will hand to B
-  and C (e.g. how the logged-in user is retrieved in a handler), agreed up
-  front so B/C can stub it and start immediately.
-- **Store package shape** — DB access behind an interface (e.g. `store`
-  package) so handlers can be unit-tested with `httptest` against a fake
-  store before the real DB logic lands.
-- **Base template / shared CSS** — a minimal shared layout (nav, base
-  styles) so the three people's pages don't look like three different
-  websites glued together.
-## Roles
- 
-Each person owns one backend domain end-to-end — DB, handlers, own
-templates/CSS for their pages, and their own Dockerfile.
- 
-### Person A — Auth & Sessions (Hoang)
-*Critical path: B and C's handlers depend on this, so ship a stub early.*
- 
-- DB schema + migrations for `users` / `sessions` (drives the ERD)
-- Register / login handlers, bcrypt password hashing
-- Cookie sessions with UUIDs + expiration
-- Auth middleware (context-based user lookup) exposed as a reusable helper
-- Templates/CSS for: register, login, profile/nav auth state
-- Own Dockerfile (see Docker below)
-### Person B — Posts, Comments & Categories (Xinyu)
- 
-- `posts` / `comments` / `categories` tables + at least one CREATE, INSERT,
-  and SELECT query
-- Create-post (with category) and create-comment handlers
-- Public read views — posts/comments visible to logged-out users
-- Templates/CSS for: post list, single post + comments, new-post form
-- A search feature
-- Own Dockerfile (see Docker below)
-### Person C — Likes & Filtering (Aman)
- 
-- Like/dislike tables + handlers, vote counts shown on display
-- Filter by category / created posts / liked posts (built on A's auth +
-  B's tables)
-- Templates/CSS for: like/dislike UI, filter controls
-- Allow users to upload images or other files
-- User profile page
-- Own Dockerfile (see Docker below)
-## Docker — everyone writes their own
- 
-Since Docker is new to all three of you, each person writes their own
-Dockerfile against the shared app (not just their slice) as a learning
-exercise, rather than one person doing it for the team.
- 
-- Each person builds and runs the full app in their own container,
-  independently, once the app compiles.
-- Compare the three Dockerfiles as a group afterward — discuss what
-  differs (base image, layer caching, multi-stage build choices,
-  labels/metadata) and merge into a single team Dockerfile using the
-  best ideas from each.
-- Whoever's version (or hybrid) is adopted still needs the "clean
-  environment" requirement covered: pruning unused images/containers.
+
+## Requirements
+
+- Go 1.27+
+- [Docker](https://docs.docker.com/get-started/get-docker/) (for containerized deployment)
+- GCC (required if you use Windows machine, install [MinGW](https://www.mingw-w64.org/) for C compiler support)
+
+## How To Run
+Clone the repository and run the following commands:
+
+```
+git clone https://gitea.kood.tech/hoangphuocvu/forum
+cd forum
+```
+
+Docker deployment:
+
+...
+
+## How It Works
+### ERD
+![ERD Diagram](/erd.png)
+...
+
+## Extras
+
+### Password Hashing
+
+The forum uses sha256 for password hashing. When a user registers, their password is hashed using the sha256 algorithm before being stored in the database. This ensures that even if the database is compromised, the actual passwords remain secure. Powered by the `crypto/sha256` package in Go.
+
+### Session Management
+
+When a user logs in, a unique session ID (uuid) is generated and stored in a cookie on the user's browser. This session ID is also stored in the database, allowing the server to identify the user on subsequent requests. The session management system ensures that users remain logged in across different pages of the forum. Powered by the `uuid` package in Go since Go 1.27.0.
+
+## Bonus Features
+
+### Bcrypt Password Hashing
+
+Hashing passwords with bcrypt is more secure than sha256. Bcrypt automatically handles salting and is designed to be computationally expensive, making it resistant to brute-force attacks. This feature is implemented by using the `golang.org/x/crypto/bcrypt` package.
+
+It solves the problem of [rainbow table](https://www.huntress.com/cybersecurity-101/topic/rainbow-table-defined), which are precomputed lookup tables for matching the stolen hash (because 2 indentical passwords would produce the same hash). Since bcrypt includes a salt, it makes rainbow table attacks ineffective.
+
+You can run it with ` --bcrypt` flag to enable bcrypt password hashing.
+
+```
+go run main.go --bcrypt
+```
+
+### 404 Page
+The 404 page is a simple soft landing page that shows the user that the page they are looking for does not exist if they navigate to a non-existent URL. The user can click the button to go back to the home page.
+
+### Reset Password
+Users can reset their passwords if they forgot it. The reset password link will be sent to their registered email address. Only registered email can receive the reset password link, but the error message will be generic to prevent the disclosure of registered email addresses. The link is valid for 30 minutes. Powered by `net/smtp` package.
+
+You can try to register an account with your email to see the reset password feature in action. If you don't receive the reset link, please check your spam folder.
+
+### Rate Limiter
+
+The rate limiter powered by `github.com/phuocvu911/ratelimiter` package is used to prevent abuse of the forum by limiting the number of requests a user can make in a given time frame. This helps to protect the server from being overwhelmed by too many requests and ensures fair usage for all users.
+
+### Search Feature
+
+Xinyu
+
+### Upload Images
+
+Aman
+
+### User Profile Page
+
+Aman
