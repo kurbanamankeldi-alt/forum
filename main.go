@@ -62,25 +62,6 @@ func main() {
 	app := handlers.NewApp(db, templates, hasher)
 
 	mux := http.NewServeMux()
-	//register endpoints here
-	mux.HandleFunc("/profile", app.ProfileHandler)
-	mux.HandleFunc("/profile/upload", app.ProfileUploadHandler)
-	mux.HandleFunc("/profile/image", app.ProfileImageHandler)
-	mux.HandleFunc("GET /profile/update", app.ProfileUpdateHandler)
-	mux.HandleFunc("POST /profile/update", app.ProfileUpdateHandler)
-	mux.HandleFunc("DELETE /profile/delete", app.ProfileDeleteHandler)
-
-	mux.HandleFunc("/", app.NotFoundHandler) //every unregistered endpoints go here
-	mux.HandleFunc("GET /register", app.HandleRegister)
-	mux.HandleFunc("POST /register", app.HandleRegister)
-	mux.HandleFunc("GET /login", app.HandleLogin)
-	mux.HandleFunc("POST /login", app.HandleLogin)
-	mux.HandleFunc("POST /logout", app.HandleLogout)
-	mux.HandleFunc("GET /{$}", app.HandleHome)
-	mux.HandleFunc("GET /forgot-password", app.HandleForgotPassword)
-	mux.HandleFunc("POST /forgot-password", app.HandleForgotPassword)
-	mux.HandleFunc("GET /reset-password", app.HandleResetPassword)
-	mux.HandleFunc("POST /reset-password", app.HandleResetPassword)
 	app.Router(mux)
 
 	//serve css
