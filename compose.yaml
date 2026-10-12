@@ -1,0 +1,13 @@
+services:
+  forum:
+    build: .
+    image: lions-forum-HAX:latest
+    container_name: lions-forum-HAX
+    ports:
+      - "8080:8080"
+    volumes:
+      - HAX-data:/data
+    restart: unless-stopped
+
+volumes:
+  HAX-data:
