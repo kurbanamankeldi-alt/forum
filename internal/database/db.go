@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS password_resets (
 `
 
 func OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "forum.db?_foreign_keys=on")
+	db, err := sql.Open("sqlite3", "data/forum.db?_foreign_keys=on")
 	if err != nil {
 		return nil, err
 	}
