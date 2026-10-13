@@ -91,7 +91,7 @@ The rate limiter powered by `github.com/phuocvu911/ratelimiter` package is used 
 
 The forum includes a keyword-based search that lets users quickly find posts by matching their search query against post content and related metadata. Search results are paginated, so users can browse through larger result sets without overwhelming the page.
 
-You can trigger a search from the posts view using the `q` query parameter, for example: `GET /posts/search?q=fiction`. Also there is advanced search criterias that can be explored in the website.
+You can trigger a search from the posts view using the `q` query parameter, for example: `GET /posts/search?q=fiction`. Also there is advanced search with sorting and filtering criterias that can be explored in the website.
 
 ### Upload Images
 
