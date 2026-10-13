@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -93,12 +94,17 @@ CREATE TABLE IF NOT EXISTS password_resets (
 `
 
 func OpenDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "data/forum.db?_foreign_keys=on")
+	if err := os.MkdirAll("./data", 0o755); err != nil {
+		return nil, fmt.Errorf("create database directory: %w", err)
+	}
+
+	db, err := sql.Open("sqlite3", "./data/forum.db?_foreign_keys=on")
 	if err != nil {
 		return nil, err
 	}
 	if _, err := db.Exec(schema); err != nil {
-		return nil, fmt.Errorf("err apply schema: %w", err)
+		db.Close()
+		return nil, fmt.Errorf("apply schema: %w", err)
 	}
 
 	return db, nil
