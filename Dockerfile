@@ -12,7 +12,9 @@ RUN go mod download
 
 # copy the rest and build the binary
 COPY . .
-RUN CGO_ENABLED=1 go build -o /forum .
+
+# strip the symbol table and debuf information so shrink binary file
+RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o /forum .
 
 # runtime stage, just a lighweight Linux img
 FROM alpine:latest
