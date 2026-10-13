@@ -12,19 +12,44 @@ posts, like/dislike, filtering, and Docker deployment.
 ## How To Run
 Clone the repository and run the following commands:
 
-```
+```zsh
 git clone https://gitea.kood.tech/hoangphuocvu/forum
 cd forum
 ```
 
 Docker deployment:
+```zsh
+docker compose up --build
+```
 
-...
+Then website will be available at `http://localhost:8080`.
 
-## How It Works
+The first build will take ~1-2 minutes to complete.
+
+Useful iteration commands:
+```zsh
+docker compose up           # start the conainer
+docker compose down         # stop the container
+docker compose restart      # restart the container
+docker compose logs -f      # view the logs
+```
+
+Clean up unused Docker objects when iterating:
+
+```zsh
+docker image prune -f        # dangling images
+docker container prune -f    # stopped containers
+docker system df             # see what's using space
+```
+
+Or you can run it without Docker:
+```zsh
+go build -o forum
+./forum
+```
 ### ERD
+
 ![ERD Diagram](/erd.png)
-...
 
 ## Extras
 
@@ -46,8 +71,8 @@ It solves the problem of [rainbow table](https://www.huntress.com/cybersecurity-
 
 You can run it with ` --bcrypt` flag to enable bcrypt password hashing.
 
-```
-go run main.go --bcrypt
+```zsh
+./forum --bcrypt
 ```
 
 ### 404 Page
@@ -64,12 +89,18 @@ The rate limiter powered by `github.com/phuocvu911/ratelimiter` package is used 
 
 ### Search Feature
 
-Xinyu
+The forum includes a keyword-based search that lets users quickly find posts by matching their search query against post content and related metadata. Search results are paginated, so users can browse through larger result sets without overwhelming the page.
+
+You can trigger a search from the posts view using the `q` query parameter, for example: `GET /posts/search?q=fiction`. Also there is advanced search criterias that can be explored in the website.
 
 ### Upload Images
 
-Aman
+Authenticated users can upload a profile image from their profile page. The uploaded image is saved in the database and served back when visiting the profile, with a default fallback image used when no custom avatar has been uploaded yet.
+
+This feature supports common image formats and keeps the user’s uploaded picture available on future visits without requiring a separate file server.
 
 ### User Profile Page
 
-Aman
+Each signed-in user has a dedicated profile page that shows their account information, recent posts, comments, and liked content. The page also includes profile statistics so users can see how active they are across the forum.
+
+From the profile, users can update their username, email, and password, and upload or replace their profile image at any time.
