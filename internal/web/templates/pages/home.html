@@ -122,6 +122,20 @@
           {{end}}
         </section>
   {{end}}
+
+  <nav class="pagination">
+    {{if .HasPrevious}}
+      <a href="/?page=1&limit={{.Limit}}&q={{urlquery (.Query.Get "q")}}&category={{urlquery (.Query.Get "category")}}&sort={{urlquery (.Query.Get "sort")}}&time={{urlquery (.Query.Get "time")}}">First</a>
+      <a href="/?page={{.PreviousPage}}&limit={{.Limit}}&q={{urlquery (.Query.Get "q")}}&category={{urlquery (.Query.Get "category")}}&sort={{urlquery (.Query.Get "sort")}}&time={{urlquery (.Query.Get "time")}}">‹</a>
+    {{end}}
+
+    <span>Page {{.Page}}</span>
+
+    {{if .HasNext}}
+      <a href="/?page={{.NextPage}}&limit={{.Limit}}&q={{urlquery (.Query.Get "q")}}&category={{urlquery (.Query.Get "category")}}&sort={{urlquery (.Query.Get "sort")}}&time={{urlquery (.Query.Get "time")}}">›</a>
+      <a href="/?page={{.LastPage}}&limit={{.Limit}}&q={{urlquery (.Query.Get "q")}}&category={{urlquery (.Query.Get "category")}}&sort={{urlquery (.Query.Get "sort")}}&time={{urlquery (.Query.Get "time")}}">Last</a>
+    {{end}}
+  </nav>
 </div>
 
 {{end}}

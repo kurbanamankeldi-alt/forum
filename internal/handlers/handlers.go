@@ -6,6 +6,7 @@ import (
 	"errors"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -69,6 +70,9 @@ func paginationParams(r *http.Request) (limit, page, offset int, err error) {
 	}
 	if page < 1 {
 		return 0, 0, 0, errors.New("page must be at least 1")
+	}
+	if page-1 > math.MaxInt/limit {
+		return 0, 0, 0, errors.New("page is too large")
 	}
 
 	offset = limit * (page - 1)

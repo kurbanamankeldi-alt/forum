@@ -4,28 +4,28 @@ import (
 	"lions/internal/database"
 	"lions/internal/models"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 )
 
 type FullPost struct {
-	ID            int64
-	Title         string
-	Content       string
-	CreatedAt     time.Time
-	Author        string
-	Likes         int
-	Dislikes      int
-	CommentCount  int
-	CategoryNames string
-	Categories    []models.Category
+	ID              int64
+	Title           string
+	Content         string
+	CreatedAt       time.Time
+	Author          string
+	Likes           int
+	Dislikes        int
+	CommentCount    int
+	CategoryNames   string
+	Categories      []models.Category
 	CurrentReaction int
 }
 
 type PostWithReaction struct {
 	UserID int
 	PostID int64
-	Value int
+	Value  int
 }
 
 func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -43,9 +43,15 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 		Category: query.Get("category"),
 		Sort:     query.Get("sort"),
 		Time:     query.Get("time"),
-	}	
+	}
 
-	posts, err := database.ListPosts(app.db, filters, 20, 0)
+	limit, page, offset, err := paginationParams(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	posts, err := database.ListPosts(app.db, filters, limit, offset)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -55,7 +61,7 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 	reactionsToPosts := make(map[int64]int)
 
 	if loggedIn {
-		rows, err:= app.db.Query(`
+		rows, err := app.db.Query(`
 			SELECT user_id, post_id, value
 			FROM post_reactions
 			WHERE user_id = ?
@@ -76,12 +82,12 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			postsWithReaction = append(postsWithReaction, *p)
-		}		
+		}
 
 		if err = rows.Err(); err != nil {
 			app.serverError(w, err)
 			return
-		}		
+		}
 
 		for _, p := range postsWithReaction {
 			reactionsToPosts[p.PostID] = p.Value
@@ -91,19 +97,19 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 	var fullposts []FullPost
 	for _, p := range posts {
 		fullpost := FullPost{
-			ID: p.ID, 
-			Title: p.Title, 
-			Content: p.Content,
-			CreatedAt: p.CreatedAt, 
-			Author: p.Author,
-			Likes: p.Likes,
-			Dislikes: p.Dislikes,
-			CommentCount: p.CommentCount,
-			CategoryNames: p.CategoryNames,
-			Categories: p.Categories,
+			ID:              p.ID,
+			Title:           p.Title,
+			Content:         p.Content,
+			CreatedAt:       p.CreatedAt,
+			Author:          p.Author,
+			Likes:           p.Likes,
+			Dislikes:        p.Dislikes,
+			CommentCount:    p.CommentCount,
+			CategoryNames:   p.CategoryNames,
+			Categories:      p.Categories,
 			CurrentReaction: reactionsToPosts[p.ID],
 		}
-		fullposts = append(fullposts, fullpost)	
+		fullposts = append(fullposts, fullpost)
 	}
 
 	categories, err := database.ListCategories(app.db)
@@ -111,10 +117,32 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
+
+	totalItems, err := database.CountPosts(app.db, filters)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	hasPrevious := page > 1
+	hasNext := offset+len(posts) < totalItems
+	lastPage := 1
+	if totalItems > 0 {
+		lastPage = (totalItems-1)/limit + 1
+	}
+
 	app.render(w, "home.html", map[string]any{
-		"User":       user,
-		"LoggedIn": loggedIn,		
-		"Posts":      fullposts,
-		"Categories": categories,
+		"User":         user,
+		"LoggedIn":     loggedIn,
+		"Posts":        fullposts,
+		"Categories":   categories,
+		"Page":         page,
+		"Limit":        limit,
+		"TotalItems":   totalItems,
+		"HasPrevious":  hasPrevious,
+		"HasNext":      hasNext,
+		"PreviousPage": page - 1,
+		"NextPage":     page + 1,
+		"LastPage":     lastPage,
+		"Query":        query,
 	})
 }
