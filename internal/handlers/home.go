@@ -45,7 +45,13 @@ func (app *App) HandleHome(w http.ResponseWriter, r *http.Request) {
 		Time:     query.Get("time"),
 	}	
 
-	posts, err := database.ListPosts(app.db, filters, 20, 0)
+	limit, page, offset, err := paginationParams(r)
+	if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+}
+
+	posts, err := database.ListPosts(app.db, filters, limit, offset)
 	if err != nil {
 		app.serverError(w, err)
 		return
